@@ -1,35 +1,44 @@
 require('dotenv').config();
 const express=require('express');
+const ejs=require('ejs');
 const bodyParser=require('body-parser');
 const mongoose=require("mongoose");
+const encrypt=require('mongoose-encryption');
 const app=express();
 
 app.use(express.static('public'));
+
 app.use(bodyParser.urlencoded({extended:false}));
+
 app.set("view engine","ejs");
 
 mongoose.connect(process.env.URL);
+
+
 const userSchema=new mongoose.Schema({
     name:String,
     email:String,
     contact:Number,
     dob:Date,
     password:String,
+
 });
 
-const user=mongoose.model("User",userSchema);
+userSchema.plugin(encrypt,{secret:process.env.SECRET,encryptedFields:['password']});
 
-
-
+const user=new mongoose.model("User",userSchema);
 app.get("/",function(req,res){
     res.render("home");
 });
+
 app.get("/register",function(req,res){
     res.render("register");
 });
+
 app.get("/login",function(req,res){
     res.render("login");
 });
+
 app.post("/register",function(request,response){
     var email=request.body.email_id;
     var password=request.body.password;
@@ -45,21 +54,25 @@ app.post("/register",function(request,response){
     });
     new_user.save();
 });
+
 app.post("/login",function(request,response){
     var email=request.body.email_id;
     var password=request.body.password;
-    user.findOne({email:email,},function(err,foundUser){
+    user.findOne({email:email},function(err,foundUser){
         if(err){
             console.log(err);
         }
-        if(foundUser){
-            if(foundUser.password===password){
-                response.render("cart");
-            }
-            else{
-                response.render("register");
+        else{
+            if(foundUser){
+                if(foundUser.password===password){
+                    response.render("cart");
+                }
+                else{
+                    response.render("register");
+                }
             }
         }
+        
     });
 })
 
