@@ -9,7 +9,10 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <h1>Welcome To Your E-Cart</h1>
+    <h1>Welcome To Your E-Cart &nbsp <%= name%></h1>
+    <form action="/logout" method="post">
+        <button type="submit" class="submit_button"> Log out </button>
+    </form>
 
     <script src="https://kit.fontawesome.com/4ec194eaa6.js" crossorigin="anonymous"></script>
 </body>

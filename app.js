@@ -65,16 +65,16 @@ app.post("/login",function(request,response){
         else{
             if(foundUser){
                 if(foundUser.password===password){
-                    response.render("cart");
+                    response.render("cart",{name:foundUser.name});
                 }
                 else{
                     response.render("register");
                 }
             }
         }
-        
     });
 })
+
 
 app.listen(3000,function(){
     console.log("Server running on port 3000");
