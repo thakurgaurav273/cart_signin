@@ -12,6 +12,11 @@ body{
     width: 300px;
     font-size: 20px;
 }
+.google{
+    border:0;
+    background-color: white;
+    margin-top: 25px;
+}
 .submit_button{
     width: 100px;
     height: 35px;
