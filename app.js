@@ -19,7 +19,7 @@ mongoose.connect(process.env.URL);
 const userSchema=new mongoose.Schema({
     name:String,
     email:String,
-    contact:Number,
+    contact:String,
     dob:Date,
     password:String,
 
