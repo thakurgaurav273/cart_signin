@@ -63,7 +63,8 @@ passport.use(new GoogleStrategy({
     callbackURL: "http://localhost:3000/auth/google/cart"
   },
   function(accessToken, refreshToken, profile, cb) {
-    console.log(profile);
+//     console.log(profile);
+//   save the username id recieved to the db
     User.findOrCreate({ googleId: profile.id ,username:profile.displayName}, function (err, user) {
       return cb(err, user);
     });
@@ -74,10 +75,10 @@ passport.use(new FacebookStrategy({
     clientID: process.env.FB_CLIENT_ID,
     clientSecret: process.env.FB_CLIENT_SECRET,
     callbackURL: "http://localhost:3000/auth/facebook/cart",
-    profileFields: ['id', 'displayName', 'photos', 'email'],
   },
  async function(accessToken, refreshToken, profile, cb) {
-    console.log(profile);
+//     console.log(profile);
+//   saved the profile details like username and fb_id to the db 
     User.findOrCreate({ facebookId: profile.id ,
         username:profile.displayName
     }, function (err, user) {
@@ -86,6 +87,7 @@ passport.use(new FacebookStrategy({
   }
 ));
 
+// route for authentication via fb
 app.get('/auth/facebook',
   passport.authenticate('facebook',{scope:'email'}));
 
@@ -120,6 +122,7 @@ app.get("/register",function(req,res){
     res.render("register");
 });
 
+// route for the cart page to validate user
 app.get("/cart",function(req,res){
     console.log(req.isAuthenticated());
     if(req.isAuthenticated()){
@@ -136,6 +139,8 @@ app.get('/logout', function(req, res, next) {
       res.redirect('/');
     });
   });
+
+// normal registeration via username or email and password and save to db 
 app.post("/register",function(request,response){
     User.register({username:request.body.username},request.body.password,function(err,user){
         if(err){
