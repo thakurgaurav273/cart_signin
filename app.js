@@ -34,7 +34,6 @@ mongoose.connect(process.env.URL);
 
 passport.use(User.createStrategy());
 
-<<<<<<< HEAD
 passport.serializeUser(function(user, done) {
     done(null, user.id);
   });
@@ -42,47 +41,6 @@ passport.serializeUser(function(user, done) {
   passport.deserializeUser(function(id, done) {
     User.findById(id, function (err, user) {
       done(err, user);
-=======
-const userSchema=new mongoose.Schema({
-    name:String,
-    email:String,
-    contact:String,
-    dob:Date,
-    password:String,
-
-});
-const saltRounds=10;
-
-
-const user=new mongoose.model("User",userSchema);
-app.get("/",function(req,res){
-    res.render("home");
-});
-
-app.get("/register",function(req,res){
-    res.render("register");
-});
-
-app.get("/login",function(req,res){
-    res.render("login");
-});
-
-app.post("/register",function(request,response){
-    bcrypt.hash(request.body.password, saltRounds, function(err, hash) {
-        var email=request.body.email_id;
-        var user_name=request.body.name;
-        var user_dob=request.body.birthday;
-        var mob=request.body.mob_number;
-        const new_user=new user({
-            name:user_name,
-            email:email,
-            contact:mob,
-            dob:user_dob,
-            password:hash
-        });
-        new_user.save();
-        response.render("cart",{name:user_name});
->>>>>>> 5722b9562f2d7c79c4051eddccc180cf2d5d4147
     });
   });
 
@@ -92,7 +50,8 @@ passport.use(new GoogleStrategy({
     callbackURL: "http://localhost:3000/auth/google/cart"
   },
   function(accessToken, refreshToken, profile, cb) {
-    console.log(profile);
+//     console.log(profile);
+//   save the username id recieved to the db
     User.findOrCreate({ googleId: profile.id ,username:profile.displayName}, function (err, user) {
       return cb(err, user);
     });
@@ -103,10 +62,10 @@ passport.use(new FacebookStrategy({
     clientID: process.env.FB_CLIENT_ID,
     clientSecret: process.env.FB_CLIENT_SECRET,
     callbackURL: "http://localhost:3000/auth/facebook/cart",
-    profileFields: ['id', 'displayName', 'photos', 'email'],
   },
  async function(accessToken, refreshToken, profile, cb) {
-    console.log(profile);
+//     console.log(profile);
+//   saved the profile details like username and fb_id to the db 
     User.findOrCreate({ facebookId: profile.id ,
         username:profile.displayName
     }, function (err, user) {
@@ -115,6 +74,7 @@ passport.use(new FacebookStrategy({
   }
 ));
 
+// route for authentication via fb
 app.get('/auth/facebook',
   passport.authenticate('facebook',{scope:'email'}));
 
@@ -134,6 +94,70 @@ app.get('/auth/google/cart',
     // Successful authentication, redirect home.
     res.redirect('/cart');
   });
+
+
+  
+app.get("/",function(req,res){
+    res.render("home");
+}); 
+
+app.get("/login",function(req,res){
+    res.render("login");
+});
+
+app.get("/register",function(req,res){
+    res.render("register");
+});
+
+app.get("/cart",function(req,res){
+    console.log(req.isAuthenticated());
+    if(req.isAuthenticated()){
+        res.render("cart");
+    }
+    else{
+        res.redirect("/login");
+    }
+});
+
+app.get('/logout', function(req, res, next) {
+    req.logout(function(err) {
+      if (err) { return next(err); }
+      res.redirect('/');
+    });
+  });
+app.post("/register",function(request,response){
+    User.register({username:request.body.username},request.body.password,function(err,user){
+        if(err){
+            console.log(err);
+            response.redirect("/register");
+        }
+        else{
+            passport.authenticate("local")(request,response,function(){
+                response.redirect("/cart");
+            });
+        }
+    })
+});
+
+app.post("/login",function(request,response){
+    const newUser=new User({
+        username:request.body.username,
+        password:request.body.password
+    })
+    request.login(newUser,function(err){
+        if(err){
+            console.log(err);
+
+        }
+        else{
+            passport.authenticate("local")(request,response,function(){
+                response.redirect("/cart");
+            })
+        }
+    })
+
+})
+
 
 app.listen(3000,function(){
     console.log("Server running on port 3000");
