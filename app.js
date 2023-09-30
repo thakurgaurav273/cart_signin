@@ -1,3 +1,4 @@
+
 require('dotenv').config();
 const express=require('express');
 const ejs=require('ejs');
@@ -10,7 +11,7 @@ const passportLocalMongoose=require('passport-local-mongoose');
 const routes = require('./routes/index');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
-const User=require("./models/user")
+const User=require("./model/user");
 
 const app=express();
 app.set("view engine","ejs");
@@ -50,8 +51,7 @@ passport.use(new GoogleStrategy({
     callbackURL: "http://localhost:3000/auth/google/cart"
   },
   function(accessToken, refreshToken, profile, cb) {
-//     console.log(profile);
-//   save the username id recieved to the db
+    console.log(profile);
     User.findOrCreate({ googleId: profile.id ,username:profile.displayName}, function (err, user) {
       return cb(err, user);
     });
@@ -62,10 +62,10 @@ passport.use(new FacebookStrategy({
     clientID: process.env.FB_CLIENT_ID,
     clientSecret: process.env.FB_CLIENT_SECRET,
     callbackURL: "http://localhost:3000/auth/facebook/cart",
+    profileFields: ['id', 'displayName', 'photos', 'email'],
   },
  async function(accessToken, refreshToken, profile, cb) {
-//     console.log(profile);
-//   saved the profile details like username and fb_id to the db 
+    console.log(profile);
     User.findOrCreate({ facebookId: profile.id ,
         username:profile.displayName
     }, function (err, user) {
@@ -74,7 +74,6 @@ passport.use(new FacebookStrategy({
   }
 ));
 
-// route for authentication via fb
 app.get('/auth/facebook',
   passport.authenticate('facebook',{scope:'email'}));
 
@@ -96,67 +95,6 @@ app.get('/auth/google/cart',
   });
 
 
-  
-app.get("/",function(req,res){
-    res.render("home");
-}); 
-
-app.get("/login",function(req,res){
-    res.render("login");
-});
-
-app.get("/register",function(req,res){
-    res.render("register");
-});
-
-app.get("/cart",function(req,res){
-    console.log(req.isAuthenticated());
-    if(req.isAuthenticated()){
-        res.render("cart");
-    }
-    else{
-        res.redirect("/login");
-    }
-});
-
-app.get('/logout', function(req, res, next) {
-    req.logout(function(err) {
-      if (err) { return next(err); }
-      res.redirect('/');
-    });
-  });
-app.post("/register",function(request,response){
-    User.register({username:request.body.username},request.body.password,function(err,user){
-        if(err){
-            console.log(err);
-            response.redirect("/register");
-        }
-        else{
-            passport.authenticate("local")(request,response,function(){
-                response.redirect("/cart");
-            });
-        }
-    })
-});
-
-app.post("/login",function(request,response){
-    const newUser=new User({
-        username:request.body.username,
-        password:request.body.password
-    })
-    request.login(newUser,function(err){
-        if(err){
-            console.log(err);
-
-        }
-        else{
-            passport.authenticate("local")(request,response,function(){
-                response.redirect("/cart");
-            })
-        }
-    })
-
-})
 
 
 app.listen(3000,function(){

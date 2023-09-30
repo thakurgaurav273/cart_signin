@@ -1,4 +1,4 @@
-const User = require('../models/user');
+const User = require('../model/user');
 const passport = require('passport');
 
 exports.register = function (request, response) {
