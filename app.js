@@ -7,9 +7,10 @@ const session=require('express-session');
 const passport=require('passport');
 const findOrCreate=require("mongoose-findorcreate");
 const passportLocalMongoose=require('passport-local-mongoose');
+const routes = require('./routes/index');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
-
+const User=require("./models/user")
 
 const app=express();
 app.set("view engine","ejs");
@@ -27,23 +28,9 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use('/',routes);
 mongoose.set('strictQuery',true);
 mongoose.connect(process.env.URL);
-
-
-const userSchema=new mongoose.Schema({
-    googleId:String,
-    username:String,
-    password:String,
-    facebookId:String
-
-});
-userSchema.plugin(passportLocalMongoose);
-userSchema.plugin(findOrCreate);
-
-
-
-const User=new mongoose.model("User",userSchema);
 
 passport.use(User.createStrategy());
 
@@ -105,70 +92,6 @@ app.get('/auth/google/cart',
     // Successful authentication, redirect home.
     res.redirect('/cart');
   });
-
-
-  
-app.get("/",function(req,res){
-    res.render("home");
-}); 
-
-app.get("/login",function(req,res){
-    res.render("login");
-});
-
-app.get("/register",function(req,res){
-    res.render("register");
-});
-
-app.get("/cart",function(req,res){
-    console.log(req.isAuthenticated());
-    if(req.isAuthenticated()){
-        res.render("cart");
-    }
-    else{
-        res.redirect("/login");
-    }
-});
-
-app.get('/logout', function(req, res, next) {
-    req.logout(function(err) {
-      if (err) { return next(err); }
-      res.redirect('/');
-    });
-  });
-app.post("/register",function(request,response){
-    User.register({username:request.body.username},request.body.password,function(err,user){
-        if(err){
-            console.log(err);
-            response.redirect("/register");
-        }
-        else{
-            passport.authenticate("local")(request,response,function(){
-                response.redirect("/cart");
-            });
-        }
-    })
-});
-
-app.post("/login",function(request,response){
-    const newUser=new User({
-        username:request.body.username,
-        password:request.body.password
-    })
-    request.login(newUser,function(err){
-        if(err){
-            console.log(err);
-
-        }
-        else{
-            passport.authenticate("local")(request,response,function(){
-                response.redirect("/cart");
-            })
-        }
-    })
-
-})
-
 
 app.listen(3000,function(){
     console.log("Server running on port 3000");
