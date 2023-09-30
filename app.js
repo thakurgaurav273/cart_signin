@@ -34,6 +34,7 @@ mongoose.connect(process.env.URL);
 
 passport.use(User.createStrategy());
 
+<<<<<<< HEAD
 passport.serializeUser(function(user, done) {
     done(null, user.id);
   });
@@ -41,6 +42,47 @@ passport.serializeUser(function(user, done) {
   passport.deserializeUser(function(id, done) {
     User.findById(id, function (err, user) {
       done(err, user);
+=======
+const userSchema=new mongoose.Schema({
+    name:String,
+    email:String,
+    contact:String,
+    dob:Date,
+    password:String,
+
+});
+const saltRounds=10;
+
+
+const user=new mongoose.model("User",userSchema);
+app.get("/",function(req,res){
+    res.render("home");
+});
+
+app.get("/register",function(req,res){
+    res.render("register");
+});
+
+app.get("/login",function(req,res){
+    res.render("login");
+});
+
+app.post("/register",function(request,response){
+    bcrypt.hash(request.body.password, saltRounds, function(err, hash) {
+        var email=request.body.email_id;
+        var user_name=request.body.name;
+        var user_dob=request.body.birthday;
+        var mob=request.body.mob_number;
+        const new_user=new user({
+            name:user_name,
+            email:email,
+            contact:mob,
+            dob:user_dob,
+            password:hash
+        });
+        new_user.save();
+        response.render("cart",{name:user_name});
+>>>>>>> 5722b9562f2d7c79c4051eddccc180cf2d5d4147
     });
   });
 
